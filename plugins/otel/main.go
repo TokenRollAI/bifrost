@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/maximhq/bifrost/core/schemas"
 	"github.com/maximhq/bifrost/framework/modelcatalog"
 	commonpb "go.opentelemetry.io/proto/otlp/common/v1"
@@ -53,6 +54,28 @@ type OtelProfileConfig struct {
 	MetricsEnabled      bool   `json:"metrics_enabled"`
 	MetricsEndpoint     string `json:"metrics_endpoint"`
 	MetricsPushInterval int    `json:"metrics_push_interval"` // in seconds, default 15
+}
+
+// UnmarshalJSON applies field defaults that the zero-value wouldn't capture.
+// Specifically, Insecure defaults to true when the key is omitted so http://
+// collectors work out-of-the-box without forcing users to set it explicitly.
+func (c *OtelProfileConfig) UnmarshalJSON(data []byte) error {
+	type alias OtelProfileConfig
+	aux := struct {
+		Insecure *bool `json:"insecure"`
+		*alias
+	}{
+		alias: (*alias)(c),
+	}
+	if err := sonic.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	if aux.Insecure == nil {
+		c.Insecure = true
+	} else {
+		c.Insecure = *aux.Insecure
+	}
+	return nil
 }
 
 // Config holds one or more collector profiles.
