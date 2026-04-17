@@ -140,7 +140,7 @@ export function ValueEditor({
 				placeholder="Search for a model..."
 				isSingleSelect
 				loadModelsOnEmptyProvider
-				className="w-[360px] border-input"
+				className="border-input w-[360px]"
 				menuPosition={menuPosition}
 				menuPortalTarget={menuPortalTarget}
 			/>
@@ -233,7 +233,13 @@ export function ValueEditor({
 						}
 
 						return (
-							<SelectItem key={optName} value={optName} disabled={optDisabled} icon={iconElement}>
+							<SelectItem
+								key={optName}
+								value={optName}
+								disabled={optDisabled ?? false}
+								icon={iconElement}
+								data-disabled={optDisabled || undefined}
+							>
 								{displayLabel}
 							</SelectItem>
 						);

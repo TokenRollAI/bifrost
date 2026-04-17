@@ -6,7 +6,7 @@
 "use client";
 
 import { CELRuleBuilder as BaseCELRuleBuilder } from "@/components/ui/custom/celBuilder";
-import { getRoutingFields } from "@/lib/config/celFieldsRouting";
+import { CELFieldDefinition, getRoutingFields } from "@/lib/config/celFieldsRouting";
 import { celOperatorsRouting } from "@/lib/config/celOperatorsRouting";
 import { convertRuleGroupToCEL, validateRegexPattern } from "@/lib/utils/celConverterRouting";
 import { useMemo } from "react";
@@ -20,6 +20,24 @@ interface CELRuleBuilderProps {
 	allowCustomModels?: boolean;
 	isLoading?: boolean;
 }
+
+const complexityTierField: CELFieldDefinition = {
+	name: "complexity_tier",
+	label: "Complexity Tier",
+	placeholder: "Select complexity tier",
+	inputType: "select",
+	valueEditorType: (operator: string) =>
+		operator === "matches" ? "text" : operator === "in" || operator === "notIn" ? "select" : "select",
+	operators: ["=", "!=", "in", "notIn"],
+	defaultOperator: "=",
+	values: [
+		{ name: "SIMPLE", label: "SIMPLE" },
+		{ name: "MEDIUM", label: "MEDIUM" },
+		{ name: "COMPLEX", label: "COMPLEX" },
+		{ name: "REASONING", label: "REASONING" },
+	],
+	description: "Filter rules by the type of complexity tier",
+};
 
 export function CELRuleBuilder({
 	onChange,
@@ -36,7 +54,7 @@ export function CELRuleBuilder({
 			onChange={onChange}
 			initialQuery={initialQuery}
 			isLoading={isLoading}
-			fields={fields}
+			fields={[...fields, complexityTierField]}
 			operators={celOperatorsRouting}
 			convertToCEL={convertRuleGroupToCEL}
 			validateRegex={validateRegexPattern}
