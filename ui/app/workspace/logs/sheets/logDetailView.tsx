@@ -645,18 +645,18 @@ export function LogDetailView({
 					onCopy={() => JSON.stringify(log.attempt_trail, null, 2)}
 				>
 					<div className="overflow-x-auto px-6 py-3">
-						<table className="w-full text-xs border-collapse">
+						<table className="w-full border-collapse text-xs">
 							<thead>
-								<tr className="border-b border-border text-muted-foreground">
-									<th className="text-left py-1 pr-6 font-medium">#</th>
-									<th className="text-left py-1 pr-6 font-medium">Key</th>
-									<th className="text-left py-1 font-medium">Result</th>
+								<tr className="border-border text-muted-foreground border-b">
+									<th className="py-1 pr-6 text-left font-medium">#</th>
+									<th className="py-1 pr-6 text-left font-medium">Key</th>
+									<th className="py-1 text-left font-medium">Result</th>
 								</tr>
 							</thead>
 							<tbody>
 								{log.attempt_trail.map((record) => (
-									<tr key={record.attempt} className="border-b border-border/50 last:border-0">
-										<td className="py-1.5 pr-6 tabular-nums text-muted-foreground">{record.attempt + 1}</td>
+									<tr key={record.attempt} className="border-border/50 border-b last:border-0">
+										<td className="text-muted-foreground py-1.5 pr-6 tabular-nums">{record.attempt + 1}</td>
 										<td className="py-1.5 pr-6 font-mono">{record.key_name || record.key_id}</td>
 										<td className="py-1.5">
 											{record.fail_reason ? (

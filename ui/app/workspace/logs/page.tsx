@@ -868,10 +868,7 @@ export default function LogsPage() {
 		return Object.keys(filterData.metadata_keys).sort();
 	}, [filterData?.metadata_keys]);
 
-	const columns = useMemo(
-		() => createColumns(handleDelete, hasDeleteAccess, metadataKeys),
-		[handleDelete, hasDeleteAccess, metadataKeys],
-	);
+	const columns = useMemo(() => createColumns(handleDelete, hasDeleteAccess, metadataKeys), [handleDelete, hasDeleteAccess, metadataKeys]);
 
 	const columnIds = useMemo(
 		() => columns.map((col) => ("id" in col && col.id ? col.id : "accessorKey" in col ? String(col.accessorKey) : "")).filter(Boolean),

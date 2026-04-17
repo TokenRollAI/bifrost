@@ -60,7 +60,6 @@ export function LogDetailSheet({
 
 	if (!log) return null;
 
-
 	// Show a loader only on the initial fetch, not during background polling refetches.
 	const displayLog: LogEntry = isFullDataReady && fullLog ? fullLog : log;
 	const resolvedSelectedPromptName = selectedPromptData?.prompt?.name ?? displayLog.selected_prompt_name ?? "";
