@@ -278,6 +278,7 @@ type UpdateProviderGovernanceRequest struct {
 func (h *GovernanceHandler) RegisterRoutes(r *router.Router, middlewares ...schemas.BifrostHTTPMiddleware) {
 	r.GET("/api/governance/complexity", lib.ChainMiddlewares(h.getComplexityAnalyzerConfig, middlewares...))
 	r.PUT("/api/governance/complexity", lib.ChainMiddlewares(h.updateComplexityAnalyzerConfig, middlewares...))
+	r.POST("/api/governance/complexity/reset", lib.ChainMiddlewares(h.resetComplexityAnalyzerConfig, middlewares...))
 
 	// Virtual Key CRUD operations
 	r.GET("/api/governance/virtual-keys", lib.ChainMiddlewares(h.getVirtualKeys, middlewares...))
@@ -409,6 +410,44 @@ func (h *GovernanceHandler) updateComplexityAnalyzerConfig(ctx *fasthttp.Request
 	}
 
 	SendJSON(ctx, normalized)
+}
+
+// resetComplexityAnalyzerConfig persists the built-in defaults, reloads the
+// governance manager, and returns the default config.
+func (h *GovernanceHandler) resetComplexityAnalyzerConfig(ctx *fasthttp.RequestCtx) {
+	if h.configStore == nil {
+		SendError(ctx, fasthttp.StatusServiceUnavailable, "config store not available")
+		return
+	}
+
+	defaults := complexity.DefaultAnalyzerConfig()
+
+	previousRaw, err := configstore.GetComplexityAnalyzerConfigRaw(ctx, h.configStore)
+	if err != nil {
+		SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("failed to read existing complexity analyzer config: %v", err))
+		return
+	}
+
+	defaultsRaw, err := json.Marshal(defaults)
+	if err != nil {
+		SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("failed to marshal default complexity analyzer config: %v", err))
+		return
+	}
+
+	if err := configstore.UpdateComplexityAnalyzerConfigRaw(ctx, h.configStore, defaultsRaw); err != nil {
+		SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("failed to persist default complexity analyzer config: %v", err))
+		return
+	}
+
+	if err := h.governanceManager.ReloadComplexityAnalyzerConfig(ctx, &defaults); err != nil {
+		if rollbackErr := rollbackComplexityAnalyzerConfig(ctx, h.configStore, previousRaw); rollbackErr != nil {
+			logger.Error("failed to rollback complexity analyzer config after reset reload failure: %v", rollbackErr)
+		}
+		SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("failed to reload complexity analyzer config: %v", err))
+		return
+	}
+
+	SendJSON(ctx, &defaults)
 }
 
 func rollbackComplexityAnalyzerConfig(ctx context.Context, store configstore.ConfigStore, previousRaw json.RawMessage) error {
